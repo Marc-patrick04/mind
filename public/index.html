@@ -1025,28 +1025,28 @@
             const riskEmojis = { low: '🟢', moderate: '🟡', high: '🔴' };
             const container = document.getElementById('resultContent');
             container.innerHTML = `
-                <div style="text-align: center;">
-                    <div style="font-size: 5rem;">${riskEmojis[result.riskLevel]}</div>
-                    <div class="result-risk" style="color: ${result.colorCode}; font-weight: bold; font-size: 2rem;">
-                        ${result.riskLevel.toUpperCase()} RISK
-                    </div>
-                    <div class="result-recommendation" style="margin: 20px 0; padding: 20px; background: var(--light-gray); border-radius: 10px;">
-                        <strong>Your Score: ${result.totalScore} / ${questions.length}</strong><br><br>
-                        <strong>Recommendation:</strong><br>
-                        ${result.recommendation}
-                    </div>
-                    <div style="margin: 30px 0;">
-                        <p>Thank you for completing this check!</p>
-                        <p>You are not alone—support is available.</p>
-                    </div>
-                    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                        ${result.riskLevel !== 'low' ?
+        <div style="text-align: center;">
+            <div style="font-size: 5rem;">${riskEmojis[result.riskLevel]}</div>
+            <div class="result-risk" style="color: ${result.colorCode}; font-weight: bold; font-size: 2rem;">
+                ${result.riskLevel.toUpperCase()} RISK
+            </div>
+            <div class="result-recommendation" style="margin: 20px 0; padding: 20px; background: var(--light-gray); border-radius: 10px;">
+                <strong>Your Score: ${result.totalScore} / ${result.maxPossibleScore} (${result.scorePercentage}%)</strong><br><br>
+                <strong>Recommendation:</strong><br>
+                ${result.recommendation}
+            </div>
+            <div style="margin: 30px 0;">
+                <p>Thank you for completing this check!</p>
+                <p>You are not alone—support is available.</p>
+            </div>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                ${result.riskLevel !== 'low' ?
                     `<button onclick="requestSupport()" class="btn btn-success">Get Support →</button>` :
                     `<button onclick="showWellnessTips()" class="btn btn-success">Wellness Tips</button>`
                 }
-                    </div>
-                </div>
-            `;
+            </div>
+        </div>
+    `;
             showSection('results');
         }
 
