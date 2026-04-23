@@ -8,48 +8,30 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database connection - Use DATABASE_URL for Neon (recommended)
-const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+// FORCE use Neon database - hardcoded for deployment
+// IMPORTANT: After testing, move these to Vercel environment variables
+const connectionString = 'postgresql://neondb_owner:npg_DZXz0RNUJ7ac@ep-mute-mode-a43dlte2-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
 
-// If you have individual credentials, construct the URL
-let connectionConfig;
-if (databaseUrl) {
-  connectionConfig = {
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false }
-  };
-} else {
-  connectionConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME,
-    ssl: { rejectUnauthorized: false }
-  };
-}
+const pool = new Pool({
+  connectionString: connectionString,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000,
+});
 
-// For Neon database, use this specific configuration
-if (process.env.DB_HOST && process.env.DB_HOST.includes('neon.tech')) {
-  connectionConfig = {
-    connectionString: `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}?sslmode=require`,
-    ssl: { rejectUnauthorized: false }
-  };
-}
-
-const pool = new Pool(connectionConfig);
-
-// Test connection on startup
+// Test connection
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('Database connection error:', err.message);
+    console.error('❌ Database connection error:', err.message);
   } else {
-    console.log('Connected to PostgreSQL database successfully');
+    console.log('✅ Connected to Neon PostgreSQL successfully');
     release();
   }
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mindapp_secret_2024';
+const JWT_SECRET = 'mindapp_secret_2024';
 
 // ============= PUBLIC ROUTES =============
 
