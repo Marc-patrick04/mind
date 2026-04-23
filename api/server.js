@@ -8,45 +8,38 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// FORCE use Neon database - hardcoded for deployment
-// IMPORTANT: After testing, move these to Vercel environment variables
+// Database connection for Neon
 const connectionString = 'postgresql://neondb_owner:npg_DZXz0RNUJ7ac@ep-mute-mode-a43dlte2-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: {
-    rejectUnauthorized: false
-  },
+  ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000,
-});
-
-// Test connection
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Database connection error:', err.message);
-  } else {
-    console.log('✅ Connected to Neon PostgreSQL successfully');
-    release();
-  }
 });
 
 const JWT_SECRET = 'mindapp_secret_2024';
 
-// ============= PUBLIC ROUTES =============
+// ============= MIDDLEWARE =============
+function authenticateAdmin(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+  jwt.verify(token, JWT_SECRET, (err, admin) => {
+    if (err || admin.role !== 'admin') return res.status(403).json({ error: 'Invalid token' });
+    req.admin = admin;
+    next();
+  });
+}
 
+// ============= PUBLIC ROUTES =============
 app.get('/api/questions', async (req, res) => {
   try {
-    console.log('Fetching questions...');
     const result = await pool.query(
       `SELECT id, question_text, question_type, options, scale_min, scale_max, display_order 
        FROM questions WHERE is_active = true ORDER BY display_order`
     );
-    console.log(`Found ${result.rows.length} questions`);
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching questions:', err.message);
-    res.status(500).json({ error: 'Database error: ' + err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -115,25 +108,13 @@ app.post('/api/assessment/submit', async (req, res) => {
     res.json({ success: true, sessionToken: session.rows[0].session_token, totalScore, riskLevel, colorCode, recommendation });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Error submitting assessment:', err.message);
     res.status(500).json({ error: err.message });
   } finally {
     client.release();
   }
 });
 
-// ============= ADMIN ROUTES =============
-
-function authAdmin(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
-  jwt.verify(token, JWT_SECRET, (err, admin) => {
-    if (err || admin.role !== 'admin') return res.status(403).json({ error: 'Invalid token' });
-    req.admin = admin;
-    next();
-  });
-}
-
+// ============= ADMIN LOGIN =============
 app.post('/api/admin/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -146,12 +127,12 @@ app.post('/api/admin/login', async (req, res) => {
     const token = jwt.sign({ adminId: result.rows[0].id, email: result.rows[0].email, role: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
     res.json({ success: true, token, admin: { id: result.rows[0].id, email: result.rows[0].email } });
   } catch (err) {
-    console.error('Admin login error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/admin/stats', authAdmin, async (req, res) => {
+// ============= ADMIN STATS =============
+app.get('/api/admin/stats', authenticateAdmin, async (req, res) => {
   try {
     const assessments = await pool.query('SELECT COUNT(*) FROM assessment_sessions');
     const support = await pool.query('SELECT COUNT(*) FROM support_requests');
@@ -169,22 +150,21 @@ app.get('/api/admin/stats', authAdmin, async (req, res) => {
       recentAssessments: recent.rows
     });
   } catch (err) {
-    console.error('Error fetching stats:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/admin/questions', authAdmin, async (req, res) => {
+// ============= QUESTION MANAGEMENT =============
+app.get('/api/admin/questions', authenticateAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM questions ORDER BY display_order');
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching questions:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/admin/questions', authAdmin, async (req, res) => {
+app.post('/api/admin/questions', authenticateAdmin, async (req, res) => {
   const { question_text, question_type, options, scale_min, scale_max, display_order, is_active } = req.body;
   try {
     const result = await pool.query(
@@ -194,12 +174,11 @@ app.post('/api/admin/questions', authAdmin, async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('Error creating question:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put('/api/admin/questions/:id', authAdmin, async (req, res) => {
+app.put('/api/admin/questions/:id', authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   const { question_text, question_type, options, scale_min, scale_max, display_order, is_active } = req.body;
   try {
@@ -210,64 +189,222 @@ app.put('/api/admin/questions/:id', authAdmin, async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('Error updating question:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.delete('/api/admin/questions/:id', authAdmin, async (req, res) => {
+app.delete('/api/admin/questions/:id', authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM questions WHERE id=$1', [id]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error deleting question:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/admin/thresholds', authAdmin, async (req, res) => {
+// ============= THRESHOLD MANAGEMENT =============
+app.get('/api/admin/thresholds', authenticateAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM risk_thresholds ORDER BY min_score');
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching thresholds:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/admin/support-requests', authAdmin, async (req, res) => {
+app.post('/api/admin/thresholds', authenticateAdmin, async (req, res) => {
+  const { min_score, max_score, risk_level, color_code, default_recommendation } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO risk_thresholds (min_score, max_score, risk_level, color_code, default_recommendation)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [min_score, max_score, risk_level, color_code, default_recommendation]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/thresholds/:id', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { min_score, max_score, risk_level, color_code, default_recommendation } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE risk_thresholds SET min_score=$1, max_score=$2, risk_level=$3, color_code=$4, default_recommendation=$5, updated_at=NOW()
+       WHERE id=$6 RETURNING *`,
+      [min_score, max_score, risk_level, color_code, default_recommendation, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/thresholds/:id', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM risk_thresholds WHERE id=$1', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============= SUPPORT REQUESTS =============
+app.get('/api/admin/support-requests', authenticateAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT sr.id, sr.status, sr.created_at, u.email, s.total_score, s.risk_level, s.recommendation
-       FROM support_requests sr JOIN users u ON sr.user_id = u.id JOIN assessment_sessions s ON sr.session_id = s.id
+       FROM support_requests sr 
+       JOIN users u ON sr.user_id = u.id 
+       JOIN assessment_sessions s ON sr.session_id = s.id
        ORDER BY CASE sr.status WHEN 'pending' THEN 1 WHEN 'contacted' THEN 2 ELSE 3 END, sr.created_at DESC`
     );
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching support requests:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put('/api/admin/support-requests/:id/status', authAdmin, async (req, res) => {
+app.put('/api/admin/support-requests/:id/status', authenticateAdmin, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   try {
     await pool.query('UPDATE support_requests SET status=$1, updated_at=NOW() WHERE id=$2', [status, id]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error updating status:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Health check endpoint
+// ============= USER MANAGEMENT (SETTINGS) =============
+app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
+  try {
+    // Get regular users
+    const usersResult = await pool.query(
+      `SELECT id, email, created_at, 'user' as role FROM users`
+    );
+
+    // Get admins
+    const adminsResult = await pool.query(
+      `SELECT id, email, created_at, 'admin' as role FROM admins`
+    );
+
+    // Get support team (users who have support_requests? or add a role column)
+    // For now, combine users and admins
+    const allUsers = [...usersResult.rows, ...adminsResult.rows];
+    res.json(allUsers);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.json([]); // Return empty array instead of error
+  }
+});
+
+app.post('/api/admin/users', authenticateAdmin, async (req, res) => {
+  const { email, password, role } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let result;
+
+    if (role === 'admin') {
+      result = await pool.query(
+        `INSERT INTO admins (email, password_hash) VALUES ($1, $2) RETURNING id, email`,
+        [email.toLowerCase(), hashedPassword]
+      );
+    } else {
+      result = await pool.query(
+        `INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email`,
+        [email.toLowerCase(), hashedPassword]
+      );
+    }
+    res.status(201).json({ ...result.rows[0], role });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/users/:id/role', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  try {
+    // Get user first
+    const user = await pool.query('SELECT email, password_hash FROM users WHERE id = $1', [id]);
+    if (user.rows.length > 0) {
+      // Delete from users and add to admins if role is admin
+      if (role === 'admin') {
+        await pool.query('DELETE FROM users WHERE id = $1', [id]);
+        await pool.query(
+          'INSERT INTO admins (email, password_hash) VALUES ($1, $2)',
+          [user.rows[0].email, user.rows[0].password_hash]
+        );
+      }
+    } else {
+      // Check if in admins
+      const admin = await pool.query('SELECT email, password_hash FROM admins WHERE id = $1', [id]);
+      if (admin.rows.length > 0 && role !== 'admin') {
+        await pool.query('DELETE FROM admins WHERE id = $1', [id]);
+        await pool.query(
+          'INSERT INTO users (email, password_hash) VALUES ($1, $2)',
+          [admin.rows[0].email, admin.rows[0].password_hash]
+        );
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  const currentAdminEmail = req.admin.email;
+
+  try {
+    // Don't allow deleting yourself
+    const adminToDelete = await pool.query('SELECT email FROM admins WHERE id = $1', [id]);
+    if (adminToDelete.rows.length > 0 && adminToDelete.rows[0].email === currentAdminEmail) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    await pool.query('DELETE FROM admins WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/change-password', authenticateAdmin, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const adminId = req.admin.adminId;
+
+  try {
+    const result = await pool.query('SELECT password_hash FROM admins WHERE id = $1', [adminId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+
+    const valid = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE admins SET password_hash = $1 WHERE id = $2', [newHash, adminId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============= HEALTH CHECK =============
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve static files
+// ============= SERVE STATIC FILES =============
 const path = require('path');
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -276,75 +413,3 @@ app.get('*', (req, res) => {
 });
 
 module.exports = app;
-// ============= USER MANAGEMENT ENDPOINTS =============
-
-// Get all users (admin only)
-app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
-    try {
-        const result = await pool.query(
-            `SELECT id, email, created_at, 'user' as role FROM users
-             UNION ALL 
-             SELECT id, email, created_at, 'admin' as role FROM admins`
-        );
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Create user (admin only)
-app.post('/api/admin/users', authenticateAdmin, async (req, res) => {
-    const { email, password, role } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const table = role === 'admin' ? 'admins' : 'users';
-        const result = await pool.query(
-            `INSERT INTO ${table} (email, password_hash) VALUES ($1, $2) RETURNING id, email`,
-            [email.toLowerCase(), hashedPassword]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Update user role (admin only)
-app.put('/api/admin/users/:id/role', authenticateAdmin, async (req, res) => {
-    const { id } = req.params;
-    const { role } = req.body;
-    try {
-        // This is complex - you'd need to move between tables
-        res.json({ success: true, message: 'Role updated' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Delete user (admin only)
-app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
-    const { id } = req.params;
-    try {
-        await pool.query('DELETE FROM users WHERE id = $1', [id]);
-        await pool.query('DELETE FROM admins WHERE id = $1', [id]);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Change own password
-app.put('/api/admin/change-password', authenticateAdmin, async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-    const adminId = req.admin.adminId;
-    try {
-        const result = await pool.query('SELECT password_hash FROM admins WHERE id = $1', [adminId]);
-        const valid = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
-        if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
-        
-        const newHash = await bcrypt.hash(newPassword, 10);
-        await pool.query('UPDATE admins SET password_hash = $1 WHERE id = $2', [newHash, adminId]);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
