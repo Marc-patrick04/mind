@@ -528,7 +528,7 @@
         // Get token and validate
         const token = localStorage.getItem('adminToken');
         if (!token) {
-            window.location.href = '/admin-login';
+            window.location.href = '/admin-login.html';
         }
 
         let currentOptions = []; // For checklist and choice: [{text: "", points: 0}]
@@ -558,7 +558,7 @@
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminEmail');
                     alert('Session expired. Please login again.');
-                    window.location.href = '/admin-login';
+                    window.location.href = '/admin-login.html';
                     throw new Error('Session expired');
                 }
 
@@ -1155,7 +1155,7 @@
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('adminEmail');
-                window.location.href = '/admin-login';
+                window.location.href = '/admin-login.html';
             }
         }
 
