@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MindApp - Mental Health Support for Students</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Additional styles for single page layout */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--light-gray);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        /* IMPROVED QUESTION STYLES */
+        .question-progress {
+            margin-bottom: 30px;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-green);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .question-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .question-dot {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .question-dot.answered {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .question-dot.current {
+            border-color: var(--primary-blue);
+            background: var(--primary-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .question-dot:hover {
+            transform: scale(1.05);
+        }
+
+        /* IMPROVED QUESTION CARD */
+        .question-card-modern {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .question-text-modern {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-gray);
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* LARGE YES/NO BUTTONS */
+        .yesno-modern {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .yesno-modern button {
+            flex: 1;
+            padding: 20px;
+            font-size: 1.2rem;
+            border: 2px solid var(--primary-blue);
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .yesno-modern button.yes:hover {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .yesno-modern button.no:hover {
+            background: #E74C3C;
+            border-color: #E74C3C;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .yesno-modern button.selected-yes {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: white;
+        }
+
+        .yesno-modern button.selected-no {
+            background: #E74C3C;
+            border-color: #E74C3C;
+            color: white;
+        }
+
+        /* SCALE BUTTONS */
+        .scale-modern {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .scale-modern button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-blue);
+            background: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .scale-modern button:hover {
+            background: var(--primary-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .scale-modern button.selected {
+            background: var(--primary-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* CHECKLIST MODERN */
+        .checklist-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .checklist-item-modern {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--light-gray);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .checklist-item-modern:hover {
+            background: #e0e4e8;
+            transform: translateX(5px);
+        }
+
+        .checklist-item-modern input {
+            width: 22px;
+            height: 22px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .checklist-item-modern label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* CHOICE MODERN */
+        .choice-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-item-modern {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--light-gray);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .choice-item-modern:hover {
+            background: #e0e4e8;
+            transform: translateX(5px);
+        }
+
+        .choice-item-modern.selected {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .choice-item-modern input {
+            width: 22px;
+            height: 22px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .choice-item-modern label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* NAVIGATION BUTTONS IMPROVED */
+        .nav-buttons-modern {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .nav-btn-prev {
+            background: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .nav-btn-prev:hover {
+            background: #ddd;
+        }
+
+        .nav-btn-next {
+            background: var(--primary-blue);
+            color: white;
+            flex: 1;
+        }
+
+        .nav-btn-next:hover {
+            background: #1e6f8f;
+            transform: translateX(5px);
+        }
+
+        .nav-btn-submit {
+            background: var(--primary-green);
+            color: white;
+            flex: 1;
+        }
+
+        .nav-btn-submit:hover {
+            background: #8fb83a;
+            transform: scale(1.02);
+        }
+
+        /* Quick navigation hint */
+        .quick-nav-hint {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .question-text-modern {
+                font-size: 1.2rem;
+            }
+
+            .yesno-modern button {
+                padding: 15px;
+                font-size: 1rem;
+            }
+
+            .scale-modern button {
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+
+            .question-dot {
+                width: 30px;
+                height: 30px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-card-modern {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Loading spinner */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--primary-blue);
+        }
+
+        /* Error message styles */
+        .error-message {
+            background: #fadbd8;
+            color: #E74C3C;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .error-message strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .error-message small {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #c0392b;
+        }
+
+        .error-message.connection-error {
+            background: #fef9e7;
+            border-left: 4px solid #f39c12;
+            color: #7d6608;
+        }
+
+        .error-message.connection-error small {
+            color: #7d6608;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast-message.error {
+            background: #E74C3C;
+        }
+
+        .toast-message.success {
+            background: var(--primary-green);
+            color: #333;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .retry-btn {
+            margin-top: 10px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1> MindApp</h1>
+                <p>Connect. Detect. Support.</p>
+            </div>
+            <div class="nav">
+                <button class="nav-tab" onclick="showSection('home')">Home</button>
+                <button class="nav-tab" onclick="showSection('assessment')">Take Assessment</button>
+                <button class="nav-tab" onclick="showSection('login')">Login</button>
+                <a href="/admin-login.html">Support</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Home Section -->
+        <div id="homeSection" class="section active">
+            <div class="card" style="text-align: center;">
+                <h1 style="color: var(--primary-blue);">Welcome to MindApp</h1>
+                <p style="font-size: 1.2rem; margin: 20px 0;">
+                    Your confidential mental health companion for detecting and managing gambling-related risks.
+                </p>
+
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 40px 0;">
+                    <div
+                        style="flex: 1; min-width: 250px; padding: 20px; background: var(--light-gray); border-radius: 10px;">
+                        <div style="font-size: 3rem;"></div>
+                        <h3>100% Anonymous</h3>
+                        <p>Take assessment without any login required</p>
+                    </div>
+                    <div
+                        style="flex: 1; min-width: 250px; padding: 20px; background: var(--light-gray); border-radius: 10px;">
+                        <div style="font-size: 3rem;"></div>
+                        <h3>Early Detection</h3>
+                        <p>Identify gambling-related mental health risks early</p>
+                    </div>
+                    <div
+                        style="flex: 1; min-width: 250px; padding: 20px; background: var(--light-gray); border-radius: 10px;">
+                        <div style="font-size: 3rem;"></div>
+                        <h3>Free Support</h3>
+                        <p>Connect with peer support groups and counselors</p>
+                    </div>
+                </div>
+
+                <button onclick="showSection('assessment')" class="btn btn-primary"
+                    style="font-size: 1.2rem; padding: 15px 40px;">
+                    Start Your Free Assessment →
+                </button>
+            </div>
+
+            <div class="card">
+                <h2 style="color: var(--primary-blue);">How It Works</h2>
+                <div style="display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 2rem; color: var(--primary-blue);">1</div>
+                        <h3>Take Assessment</h3>
+                        <p>Tap answers to questions - automatically moves to next</p>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 2rem; color: var(--primary-blue);">2</div>
+                        <h3>Get Results</h3>
+                        <p>Receive immediate risk level and personalized recommendations</p>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 2rem; color: var(--primary-blue);">3</div>
+                        <h3>Seek Support</h3>
+                        <p>Login to connect with peer groups and professional counselors</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="text-align: center; background: var(--primary-green); color: var(--white);">
+                <h2>Need Immediate Help?</h2>
+                <p style="margin: 15px 0;">You're not alone. Support is available 24/7.</p>
+                <button class="btn" style="background: var(--white); color: var(--primary-blue);"
+                    onclick="alert('Emergency contacts: Call 112 or visit your university counseling center')">
+                    Get Help Now
+                </button>
+            </div>
+        </div>
+
+        <!-- ASSESSMENT SECTION -->
+        <div id="assessmentSection" class="section">
+            <div class="card">
+                <h2 style="color: var(--primary-blue); margin-bottom: 10px;">Mental Health Assessment</h2>
+                <p style="margin-bottom: 20px;">Tap your answers - we'll automatically move to next question.</p>
+
+                <!-- Progress indicators -->
+                <div class="question-progress">
+                    <div class="progress-stats">
+                        <span id="answeredCount">0</span>
+                        <span>of <span id="totalQuestions">0</span> answered</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Quick navigation dots -->
+                <div class="question-numbers" id="questionNumbers"></div>
+
+                <!-- Current question -->
+                <div id="questionsContainer"></div>
+
+                <!-- Navigation buttons -->
+                <div class="nav-buttons-modern">
+                    <button class="nav-btn nav-btn-prev" id="prevBtn" onclick="prevQuestion()" style="display: none;">←
+                        Previous</button>
+                    <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextQuestion()"
+                        style="display: none;">Next Question →</button>
+                    <button class="nav-btn nav-btn-submit" id="submitBtn" onclick="submitAssessment()"
+                        style="display: none;">✓ Submit Assessment</button>
+                </div>
+
+                <div class="quick-nav-hint">
+                    💡 Tip: Tap any answered dot to jump to that question
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="section">
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <h2 style="text-align: center; color: var(--primary-blue);">Login to MindApp</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" required placeholder="student@university.edu">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">
+                    Don't have an account? <a href="#" onclick="showSection('register')">Register here</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Register Section -->
+        <div id="registerSection" class="section">
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <h2 style="text-align: center; color: var(--primary-blue);">Create Account</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="regEmail" required placeholder="student@university.edu">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" required placeholder="Create a password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="regConfirmPassword" required placeholder="Confirm your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">
+                    Already have an account? <a href="#" onclick="showSection('login')">Login here</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="section">
+            <div class="card result-container">
+                <div id="resultContent"></div>
+                <div style="margin-top: 20px;">
+                    <button onclick="resetAndStartOver()" class="btn btn-primary">Take Another Assessment</button>
+                    <button onclick="showSection('home')" class="btn">Back to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentIndex = 0;
+        let answers = {};
+        let isLoading = false;
+
+        // Toast notification function
+        function showToast(message, type = 'error') {
+            const toast = document.createElement('div');
+            toast.className = `toast-message ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Show error message in container
+        function showErrorInContainer(container, errorType, errorMessage, onRetry = null) {
+            let html = '';
+
+            if (errorType === 'connection') {
+                html = `
+                    <div class="error-message connection-error">
+                        <strong>🔌 Connection Error</strong>
+                        <p>Cannot connect to the server. Please check your internet connection.</p>
+                        <small>${errorMessage}</small>
+                        ${onRetry ? '<button class="retry-btn" onclick="' + onRetry + '()">Retry</button>' : ''}
+                    </div>
+                `;
+            } else if (errorType === 'database') {
+                html = `
+                    <div class="error-message">
+                        <strong>🗄️ Database Error</strong>
+                        <p>There was an issue with the database. Our team has been notified.</p>
+                        <small>${errorMessage}</small>
+                        ${onRetry ? '<button class="retry-btn" onclick="' + onRetry + '()">Retry</button>' : ''}
+                    </div>
+                `;
+            } else if (errorType === 'auth') {
+                html = `
+                    <div class="error-message">
+                        <strong>🔐 Authentication Error</strong>
+                        <p>${errorMessage}</p>
+                        <small>Please check your credentials and try again.</small>
+                    </div>
+                `;
+            } else if (errorType === 'validation') {
+                html = `
+                    <div class="error-message">
+                        <strong>⚠️ Validation Error</strong>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="error-message">
+                        <strong>❌ Error</strong>
+                        <p>${errorMessage}</p>
+                        ${onRetry ? '<button class="retry-btn" onclick="' + onRetry + '()">Retry</button>' : ''}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${sectionName}Section`).classList.add('active');
+
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            const tabs = { 'home': 0, 'assessment': 1, 'login': 2 };
+            if (tabs[sectionName] !== undefined) {
+                document.querySelectorAll('.nav-tab')[tabs[sectionName]].classList.add('active');
+            }
+
+            if (sectionName === 'assessment' && questions.length === 0 && !isLoading) {
+                loadQuestions();
+            }
+        }
+
+        async function loadQuestions() {
+            isLoading = true;
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '<div class="loading">Loading questions...</div>';
+
+            try {
+                console.log('Fetching questions from /api/questions');
+                const response = await fetch('/api/questions');
+
+                if (!response.ok) {
+                    // Handle different HTTP status codes
+                    if (response.status === 500) {
+                        throw new Error('Database connection error. Please try again later.');
+                    } else if (response.status === 404) {
+                        throw new Error('Questions endpoint not found. Please check server configuration.');
+                    } else if (response.status === 403 || response.status === 401) {
+                        throw new Error('Authentication error. Please refresh the page.');
+                    } else {
+                        throw new Error(`Server error (${response.status})`);
+                    }
+                }
+
+                questions = await response.json();
+                console.log('Loaded questions:', questions);
+
+                if (!questions || questions.length === 0) {
+                    showErrorInContainer(container, 'database', 'No questions available in the database. Please contact the administrator.', 'loadQuestions');
+                    return;
+                }
+
+                currentIndex = 0;
+                answers = {};
+                renderQuestionNumbers();
+                renderQuestion();
+                updateProgress();
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                const errorMessage = error.message || 'Failed to load questions';
+
+                // Determine error type
+                if (errorMessage.includes('Database') || errorMessage.includes('database')) {
+                    showErrorInContainer(container, 'database', errorMessage, 'loadQuestions');
+                } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                    showErrorInContainer(container, 'connection', 'Unable to reach the server. Please check if the server is running.', 'loadQuestions');
+                } else {
+                    showErrorInContainer(container, 'general', errorMessage, 'loadQuestions');
+                }
+                showToast(errorMessage, 'error');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function renderQuestionNumbers() {
+            const container = document.getElementById('questionNumbers');
+            if (!container) return;
+
+            container.innerHTML = questions.map((q, idx) => `
+                <div class="question-dot ${answers[q.id] ? 'answered' : ''} ${idx === currentIndex ? 'current' : ''}" 
+                     onclick="jumpToQuestion(${idx})">
+                    ${idx + 1}
+                </div>
+            `).join('');
+        }
+
+        function jumpToQuestion(index) {
+            if (index >= 0 && index < questions.length) {
+                currentIndex = index;
+                renderQuestion();
+                renderQuestionNumbers();
+            }
+        }
+
+        function updateProgress() {
+            const answered = Object.keys(answers).length;
+            const total = questions.length;
+            const progress = total > 0 ? (answered / total) * 100 : 0;
+
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('answeredCount').innerText = answered;
+            document.getElementById('totalQuestions').innerText = total;
+        }
+
+        function renderQuestion() {
+            if (currentIndex >= questions.length) return;
+
+            const question = questions[currentIndex];
+            if (!question) return;
+
+            const container = document.getElementById('questionsContainer');
+
+            // Handle options - could be array or JSON string
+            let options = [];
+            if (question.options) {
+                if (Array.isArray(question.options)) {
+                    options = question.options;
+                } else if (typeof question.options === 'string') {
+                    try {
+                        options = JSON.parse(question.options);
+                    } catch (e) {
+                        console.error('Error parsing options:', e);
+                        options = [];
+                    }
+                }
+            }
+
+            let html = `
+                <div class="question-card-modern">
+                    <div class="question-text-modern">
+                        ${currentIndex + 1}. ${question.question_text}
+                    </div>
+                    <div class="question-options" id="questionOptions">
+            `;
+
+            if (question.question_type === 'yesno') {
+                const saved = answers[question.id];
+                html += `
+                    <div class="yesno-modern">
+                        <button class="${saved === 'yes' ? 'selected-yes' : ''}" onclick="setAnswerAndAdvance(${question.id}, 'yes')">✅ Yes</button>
+                        <button class="${saved === 'no' ? 'selected-no' : ''}" onclick="setAnswerAndAdvance(${question.id}, 'no')">❌ No</button>
+                    </div>
+                `;
+            }
+            else if (question.question_type === 'scale') {
+                const saved = answers[question.id];
+                const minVal = question.scale_min || 1;
+                const maxVal = question.scale_max || 5;
+                html += `<div class="scale-modern">`;
+                for (let i = minVal; i <= maxVal; i++) {
+                    let emoji = '';
+                    if (i <= 2) emoji = '😔';
+                    else if (i >= 4) emoji = '😊';
+                    else emoji = '😐';
+                    html += `
+                        <button class="${saved == i ? 'selected' : ''}" onclick="setAnswerAndAdvance(${question.id}, ${i})">
+                            ${i}<br><small>${emoji}</small>
+                        </button>
+                    `;
+                }
+                html += `</div>`;
+            }
+            else if (question.question_type === 'checklist') {
+                const saved = answers[question.id] ? JSON.parse(answers[question.id]) : [];
+                html += `<div class="checklist-modern">`;
+                options.forEach(option => {
+                    const optionText = typeof option === 'object' ? option.text : option;
+                    html += `
+                        <div class="checklist-item-modern" onclick="toggleChecklist(${question.id}, '${optionText}', this)">
+                            <input type="checkbox" ${saved.includes(optionText) ? 'checked' : ''} onclick="event.stopPropagation()">
+                            <label>${optionText}</label>
+                        </div>
+                    `;
+                });
+                html += `</div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="saveChecklistAndAdvance(${question.id})">Continue →</button>
+                    </div>
+                `;
+            }
+            else if (question.question_type === 'choice') {
+                const saved = answers[question.id];
+                html += `<div class="choice-modern">`;
+                options.forEach(option => {
+                    const optionText = typeof option === 'object' ? option.text : option;
+                    html += `
+                        <div class="choice-item-modern ${saved === optionText ? 'selected' : ''}" onclick="setAnswerAndAdvance(${question.id}, '${optionText}')">
+                            <label>${optionText}</label>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+
+            // Update button visibility
+            const isLastQuestion = currentIndex === questions.length - 1;
+            document.getElementById('prevBtn').style.display = currentIndex > 0 ? 'inline-block' : 'none';
+            document.getElementById('nextBtn').style.display = !isLastQuestion ? 'inline-block' : 'none';
+            document.getElementById('submitBtn').style.display = isLastQuestion ? 'inline-block' : 'none';
+        }
+
+        function setAnswerAndAdvance(questionId, value) {
+            answers[questionId] = value.toString();
+
+            renderQuestionNumbers();
+            updateProgress();
+
+            // Auto-advance to next question if not last
+            if (currentIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentIndex++;
+                    renderQuestion();
+                    renderQuestionNumbers();
+                }, 200);
+            } else {
+                renderQuestion();
+            }
+        }
+
+        function toggleChecklist(questionId, value, element) {
+            const checkbox = element.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+
+            let current = answers[questionId] ? JSON.parse(answers[questionId]) : [];
+            if (checkbox.checked) {
+                if (!current.includes(value)) current.push(value);
+            } else {
+                current = current.filter(v => v !== value);
+            }
+            answers[questionId] = JSON.stringify(current);
+
+            renderQuestionNumbers();
+            updateProgress();
+        }
+
+        function saveChecklistAndAdvance(questionId) {
+            if (!answers[questionId]) {
+                answers[questionId] = JSON.stringify([]);
+            }
+
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+                renderQuestionNumbers();
+            } else {
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+                renderQuestionNumbers();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+                renderQuestionNumbers();
+            }
+        }
+
+        function resetAndStartOver() {
+            currentIndex = 0;
+            answers = {};
+            renderQuestionNumbers();
+            renderQuestion();
+            updateProgress();
+            showSection('assessment');
+        }
+
+        async function submitAssessment() {
+            const answeredCount = Object.keys(answers).length;
+            if (answeredCount < questions.length) {
+                showToast(`Please answer all questions. (${answeredCount}/${questions.length} completed)`, 'error');
+                return;
+            }
+
+            const formattedAnswers = Object.entries(answers).map(([questionId, answer]) => ({
+                questionId: parseInt(questionId),
+                answer: answer
+            }));
+
+            try {
+                const response = await fetch('/api/assessment/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answers: formattedAnswers })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 500) {
+                        throw new Error('Database error while saving your assessment. Please try again.');
+                    } else if (response.status === 400) {
+                        throw new Error('Invalid submission data. Please review your answers.');
+                    } else {
+                        throw new Error(`Server error (${response.status})`);
+                    }
+                }
+
+                const result = await response.json();
+
+                localStorage.setItem('sessionToken', result.sessionToken);
+                localStorage.setItem('riskLevel', result.riskLevel);
+                localStorage.setItem('recommendation', result.recommendation);
+                localStorage.setItem('totalScore', result.totalScore);
+                localStorage.setItem('colorCode', result.colorCode);
+
+                showResults(result);
+                showToast('Assessment submitted successfully!', 'success');
+            } catch (error) {
+                console.error('Error submitting assessment:', error);
+                showToast(error.message || 'Failed to submit assessment. Please try again.', 'error');
+            }
+        }
+
+        function showResults(result) {
+            const riskEmojis = { low: '🟢', moderate: '🟡', high: '🔴' };
+            const container = document.getElementById('resultContent');
+            container.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 5rem;">${riskEmojis[result.riskLevel]}</div>
+                    <div class="result-risk" style="color: ${result.colorCode}; font-weight: bold; font-size: 2rem;">
+                        ${result.riskLevel.toUpperCase()} RISK
+                    </div>
+                    <div class="result-recommendation" style="margin: 20px 0; padding: 20px; background: var(--light-gray); border-radius: 10px;">
+                        <strong>Your Score: ${result.totalScore} / ${questions.length}</strong><br><br>
+                        <strong>Recommendation:</strong><br>
+                        ${result.recommendation}
+                    </div>
+                    <div style="margin: 30px 0;">
+                        <p>Thank you for completing this check!</p>
+                        <p>You are not alone—support is available.</p>
+                    </div>
+                    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                        ${result.riskLevel !== 'low' ?
+                    `<button onclick="requestSupport()" class="btn btn-success">Get Support →</button>` :
+                    `<button onclick="showWellnessTips()" class="btn btn-success">Wellness Tips</button>`
+                }
+                    </div>
+                </div>
+            `;
+            showSection('results');
+        }
+
+        async function requestSupport() {
+            const sessionToken = localStorage.getItem('sessionToken');
+            if (!sessionToken) {
+                showToast('Session expired. Please take the assessment again.', 'error');
+                showSection('assessment');
+                return;
+            }
+
+            const token = localStorage.getItem('userToken');
+            if (!token) {
+                localStorage.setItem('pendingSessionToken', sessionToken);
+                if (confirm('You need to login or register to receive support. Would you like to login now?')) {
+                    showSection('login');
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/support/link-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ sessionToken })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('userToken');
+                        throw new Error('Your session has expired. Please login again.');
+                    } else if (response.status === 404) {
+                        throw new Error('Assessment session not found. Please take the assessment again.');
+                    } else if (response.status === 500) {
+                        throw new Error('Database error. Please try again later.');
+                    }
+                    throw new Error('Failed to request support');
+                }
+
+                const result = await response.json();
+                showToast(result.supportMessage, 'success');
+                showSection('home');
+            } catch (error) {
+                console.error('Error requesting support:', error);
+                showToast(error.message || 'Failed to request support. Please try again later.', 'error');
+            }
+        }
+
+        function showWellnessTips() {
+            alert('Wellness Tips:\n\n• Practice mindfulness daily\n• Set spending limits\n• Find healthy alternatives to gambling\n• Talk to friends and family\n• Join our wellness workshops');
+        }
+
+        // Login handler with better error messages
+        document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('/api/support/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('userToken', result.token);
+                    localStorage.setItem('userEmail', result.user.email);
+                    showToast('Login successful!', 'success');
+
+                    const pendingSession = localStorage.getItem('pendingSessionToken');
+                    if (pendingSession) {
+                        localStorage.removeItem('pendingSessionToken');
+                        const linkResponse = await fetch('/api/support/link-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${result.token}` },
+                            body: JSON.stringify({ sessionToken: pendingSession })
+                        });
+                        if (linkResponse.ok) {
+                            const linkResult = await linkResponse.json();
+                            showToast(linkResult.supportMessage, 'success');
+                        }
+                    }
+                    showSection('home');
+                } else {
+                    // Handle specific error messages
+                    if (result.error === 'Invalid credentials') {
+                        showToast('Invalid email or password. Please try again.', 'error');
+                    } else if (result.error === 'User not found') {
+                        showToast('No account found with this email. Please register first.', 'error');
+                    } else {
+                        showToast(result.error || 'Login failed. Please try again.', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    showToast('Cannot connect to server. Please check your connection.', 'error');
+                } else {
+                    showToast('Login failed. Please try again.', 'error');
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        // Register handler with better error messages
+        document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters long', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
+
+            try {
+                const response = await fetch('/api/support/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('userToken', result.token);
+                    localStorage.setItem('userEmail', result.user.email);
+                    showToast('Registration successful! Welcome to MindApp!', 'success');
+
+                    const pendingSession = localStorage.getItem('pendingSessionToken');
+                    if (pendingSession) {
+                        localStorage.removeItem('pendingSessionToken');
+                        const linkResponse = await fetch('/api/support/link-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${result.token}` },
+                            body: JSON.stringify({ sessionToken: pendingSession })
+                        });
+                        if (linkResponse.ok) {
+                            const linkResult = await linkResponse.json();
+                            showToast(linkResult.supportMessage, 'success');
+                        }
+                    }
+                    showSection('home');
+                } else {
+                    if (result.error === 'User already exists') {
+                        showToast('An account with this email already exists. Please login instead.', 'error');
+                    } else if (result.error.includes('email')) {
+                        showToast('Please enter a valid email address.', 'error');
+                    } else {
+                        showToast(result.error || 'Registration failed. Please try again.', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                if (error.message.includes('Failed to fetch')) {
+                    showToast('Cannot connect to server. Please check your connection.', 'error');
+                } else {
+                    showToast('Registration failed. Please try again.', 'error');
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
+    </script>
+</body>
+
+</html>

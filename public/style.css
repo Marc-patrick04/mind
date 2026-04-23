@@ -1,0 +1,317 @@
+:root {
+  --primary-blue: #2E86AB;
+  --primary-green: #A3CE4A;
+  --white: #FFFFFF;
+  --light-gray: #F5F7FA;
+  --dark-gray: #333333;
+  --low-risk: #2ECC71;
+  --moderate-risk: #F39C12;
+  --high-risk: #E74C3C;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--light-gray) 0%, var(--white) 100%);
+  color: var(--dark-gray);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.header {
+  background: var(--primary-blue);
+  color: var(--white);
+  padding: 20px 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo h1 {
+  font-size: 1.8rem;
+}
+
+.logo p {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.nav a {
+  color: var(--white);
+  text-decoration: none;
+  margin-left: 20px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.nav a:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Cards */
+.card {
+  background: var(--white);
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  text-align: center;
+}
+
+.btn-primary {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: #1e6f8f;
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: var(--primary-green);
+  color: var(--dark-gray);
+}
+
+.btn-success:hover {
+  background: #8fb83a;
+}
+
+.btn-danger {
+  background: var(--high-risk);
+  color: var(--white);
+}
+
+/* Risk badges */
+.risk-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  color: var(--white);
+}
+
+.risk-low { background: var(--low-risk); }
+.risk-moderate { background: var(--moderate-risk); }
+.risk-high { background: var(--high-risk); }
+
+/* Question styles */
+.question-card {
+  background: var(--light-gray);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.question-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+/* Yes/No buttons */
+.yesno-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.yesno-btn {
+  padding: 10px 20px;
+  border: 2px solid var(--primary-blue);
+  background: var(--white);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.yesno-btn.selected {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+/* Scale input */
+.scale-input {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scale-btn {
+  width: 50px;
+  height: 50px;
+  border: 2px solid var(--primary-blue);
+  background: var(--white);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.scale-btn.selected {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+/* Checklist */
+.checklist-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checklist-item input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: var(--light-gray);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-green);
+  transition: width 0.3s;
+}
+
+/* Result page */
+.result-container {
+  text-align: center;
+  padding: 40px;
+}
+
+.result-risk {
+  font-size: 2rem;
+  margin: 20px 0;
+}
+
+.result-recommendation {
+  font-size: 1.2rem;
+  margin: 20px 0;
+  padding: 20px;
+  background: var(--light-gray);
+  border-radius: 10px;
+}
+
+/* Admin panel */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.admin-table th {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--white);
+  margin: 50px auto;
+  padding: 30px;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 15px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .nav {
+    margin-top: 10px;
+  }
+  
+  .nav a {
+    margin: 0 10px;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+}
